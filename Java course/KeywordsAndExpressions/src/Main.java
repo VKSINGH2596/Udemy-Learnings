@@ -6,7 +6,7 @@ public class Main {
         int highScore = 50;
 
         if (highScore > 25) {
-            highScore = 1000 + highScore;       // add bonus points
+            highScore = 1000 + highScore; // add bonus points
         }
 
         int health = 100;
@@ -14,14 +14,19 @@ public class Main {
             highScore = highScore - 1000;
         }
 
-        /* In above code below are the parts which are expressions:
-        - health = 100
-        - health < 25
-        - highScore > 1000
-        - (health < 25) && (highScore > 1000)
-        - highScore - 1000
-        - highScore = highScore - 1000
-        */
+        /*
+         * In above code below are the parts which are expressions:
+         * - health = 100
+         * - health < 25
+         * - highScore > 1000
+         * - (health < 25) && (highScore > 1000)
+         * - highScore - 1000
+         * - highScore = highScore - 1000
+         */
+
+        int anotherVariable = 50;
+        anotherVariable++;
+        System.out.println("Another variable is now: " + anotherVariable);
 
     }
 }
