@@ -21,6 +21,7 @@ public class Main {
         if (gameOver) {
             finalScore += (levelCompleted * bonus);
             System.out.println("Your final score was " + finalScore);
+            System.out.println("Called via the method");
         }
     }
 }
