@@ -1,0 +1,158 @@
+# SQL View Analysis: vwOrderLineAttributeValues
+
+**Database**: insight_test
+**View Name**: dbo.vwOrderLineAttributeValues
+**Date Analyzed**: March 30, 2026
+**View Version**: 6 (auto-generated on 2024-09-10 08:44:46)
+
+---
+
+## Overview
+
+This SQL Server view transforms order line attributes from a normalized Entity-Attribute-Value (EAV) structure into a denormalized, columnar format for easier querying and reporting.
+
+---
+
+## Purpose
+
+Pivots attribute values stored in rows (in the `OrderLineAttributeValues` table) into discrete columns, creating one row per order line (`olnID`) with specific attributes as individual columns.
+
+---
+
+## Structure
+
+### Source Tables
+
+1. **OrderLineAttributeValues** (aliased as `av`)
+   - Primary source table storing attribute-value pairs
+   - Uses EAV pattern where each row represents one attribute for an order line
+
+2. **AttributeList** (aliased as `atbl`)
+   - Lookup table for attribute descriptions
+   - LEFT JOINed to fetch description for Quality Check attribute
+
+### Pivoted Attributes
+
+The view pivots 6 specific attributes identified by `atbID`:
+
+| atbID | Column Name | Description |
+|-------|-------------|-------------|
+| 75 | Product_Short_Desc | Short description of the product |
+| 76 | Product_Line | Product line classification |
+| 77 | Option_String | Product options/configurations |
+| 520 | SAPPID | SAP system identifier |
+| 521 | BAANProductionOrder | BAAN production order number |
+| 1160 | QualityCheckRequired | Quality check requirement flag |
+| 1160 | QualityCheckRequired Description | Human-readable description from AttributeList |
+
+### Pivoting Logic
+
+Uses the `MAX(CASE WHEN...)` pattern combined with `GROUP BY`:
+```sql
+MAX(CASE WHEN av.atbID = 75 THEN av.olnavValue END) AS [Product_Short_Desc]
+```
+
+This transforms vertical attribute rows into horizontal columns.
+
+---
+
+## Query Components
+
+### SELECT Clause
+- Returns `olnID` as the grouping key (`olnIDolnAv`)
+- Creates 7 pivoted columns from the 6 attribute IDs
+
+### FROM/JOIN
+- Main table: `OrderLineAttributeValues`
+- LEFT JOIN to `AttributeList` for description lookup
+  - Join conditions: matching `atbID`, matching code value, active records only
+
+### WHERE Clause
+```sql
+WHERE av.atbID IN (75, 76, 77, 520, 521, 1160)
+```
+Filters to only the 6 relevant attributes, improving performance.
+
+### GROUP BY
+```sql
+GROUP BY av.olnID
+```
+Aggregates all attribute values for each order line into a single row.
+
+---
+
+## Potential Issues & Considerations
+
+### 1. JOIN Inefficiency
+**Issue**: The LEFT JOIN to `AttributeList` is applied to all rows, but only attribute 1160 uses it.
+
+**Impact**: Unnecessary join processing for 5 out of 6 attributes.
+
+**Consideration**: This is minor if the AttributeList table is small or well-indexed.
+
+### 2. Duplicate Handling
+**Issue**: `MAX()` aggregation will arbitrarily select one value if duplicates exist for the same `olnID + atbID` combination.
+
+**Risk**: No explicit de-duplication or conflict resolution logic.
+
+**Recommendation**: Verify data integrity constraints ensure uniqueness, or add explicit handling for duplicates.
+
+### 3. Performance Considerations
+
+**Current Optimizations**:
+- `WHERE IN` clause limits rows early
+- Specific attribute filtering before aggregation
+
+**Recommended Indexes**:
+- `OrderLineAttributeValues`: Index on `(atbID, olnID) INCLUDE (olnavValue)`
+- `AttributeList`: Index on `(atbID, atblCode, atblActive) INCLUDE (atblDescription)`
+
+### 4. Maintainability
+**Warning**: The view comment indicates this is auto-generated (version 6) and managed through an "Attribute Associations form."
+
+**Impact**: Manual modifications may be overwritten when attributes are added/removed through the form.
+
+**Recommendation**: Document any manual changes separately or modify through the official form interface.
+
+### 5. Data Type Handling
+**Observation**: All values are returned as-is from `olnavValue` (likely VARCHAR/NVARCHAR).
+
+**Consideration**: If attributes have specific data types (dates, numbers), downstream queries may need explicit conversions.
+
+---
+
+## Usage Recommendations
+
+### Best Practices
+1. Use this view for reporting and read-only queries
+2. Be aware that values are string-based from the EAV structure
+3. Consider the auto-generation process before making manual edits
+4. Verify no duplicate attribute values exist per order line
+
+### Performance Tips
+1. Filter by `olnIDolnAv` when possible to leverage indexes
+2. Avoid SELECT * - specify only needed columns
+3. Consider materialized view or indexed view if query performance is critical
+
+---
+
+## Example Query
+
+```sql
+-- Get orders with quality check required
+SELECT
+    olnIDolnAv,
+    Product_Short_Desc,
+    Product_Line,
+    QualityCheckRequired,
+    [QualityCheckRequired Description]
+FROM dbo.vwOrderLineAttributeValues
+WHERE QualityCheckRequired IS NOT NULL
+```
+
+---
+
+## Change History
+
+- **Version 6**: 2024-09-10 08:44:46 (auto-generated by HMI\GGAFNN)
+- **Analysis Date**: 2026-03-30 (documentation created)
