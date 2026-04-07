@@ -27,9 +27,7 @@ jobs:
           fi
           
       - name: Push to Public Repo
-        env:
-          TOKEN: ${{ secrets.PUBLIC_REPO_TOKEN }}
         run: |
-          git remote add public https://VKSINGH2596:$TOKEN@github.com/VKSINGH2596/Udemy-Learnings.git
+          git remote add public https://VKSINGH2596:${{secrets.PUBLIC_REPO_TOKEN}}@github.com/VKSINGH2596/Udemy-Learnings.git
           git push public main --force
           
