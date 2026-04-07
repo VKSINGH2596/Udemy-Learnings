@@ -14,14 +14,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure Git Credentials
-        run: |
-          git config --local user.email "github-actions@github.com"
-          git config --local user.name "GitHub Actions"
-          git config --global credential.helper store
-          echo "https://VKSINGH2596:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com" > ~/.git-credentials
-
       - name: Push to Public Repo
         run: |
-          git remote add public https://github.com/VKSINGH2596/Udemy-Learnings.git
+          git remote add public https://VKSINGH2596:${{ secrets.PUBLIC_REPO_TOKEN }}@github.com/VKSINGH2596/Udemy-Learnings.git
           git push public main --force
+        env:
+          GIT_TERMINAL_PROMPT: 0
