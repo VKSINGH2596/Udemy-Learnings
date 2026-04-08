@@ -11,6 +11,7 @@ jobs:
       - name: Checkout Private Repo
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.SYNC_PAT }}
           fetch-depth: 0 # Fetches all history for all branches and tags
 
       - name: Push to Public Repo
