@@ -15,5 +15,5 @@ jobs:
 
       - name: Push to Public Repo
         run: |
-          git remote add public https://x-access-token:${{ secrets.SYNC_PAT }}@://github.com/VKSINGH2596/Udemy-Learnings.git
+          git remote add public https://x-access-token:${{ secrets.SYNC_PAT }}@:/github.com/VKSINGH2596/Udemy-Learnings.git
           git push public main --force
